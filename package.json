@@ -2,13 +2,14 @@
   "name": "simples",
   "version": "1.0.0",
   "description": "",
-  "main": "lib/string",
+  "main": "lib/simples",
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha test"
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "string": "^3.1.1"
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "^2.2.1"
   }
 }
