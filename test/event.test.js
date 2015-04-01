@@ -79,11 +79,11 @@ describe('Events can be linked to functions', function () {
   it('a function will run when an event is raised', function () {
 
     var events = [ { productId: 321, event: "orderSubmitted" } ] 
-    var submitAnOrder = function (event) {
+    var SubmitAnOrder = function (event) {
         this.productId = event.productId;
     };
 
-    se.registerHandler('orderSubmitted', submitAnOrder);
+    se.registerHandler('orderSubmitted', SubmitAnOrder);
     se.replay(newObj, events);
     newObj.productId.should.equal(321);
   });
@@ -91,17 +91,17 @@ describe('Events can be linked to functions', function () {
   it('multiple events will be processed', function () {
 
     var event1 = { productId: 321, event: "orderSubmitted" }
-    var submitAnOrder = function (event) {
+    var SubmitAnOrder = function (event) {
         this.productId = event.productId;
     };
 
     var event2 = { productId: 324, event: "orderUpdated" } 
-    var updateOrder = function (event) {
+    var UpdateOrder = function (event) {
         this.productId = event.productId;
     };
 
-    se.registerHandler('orderSubmitted', submitAnOrder);
-    se.registerHandler('orderUpdated', updateOrder);
+    se.registerHandler('orderSubmitted', SubmitAnOrder);
+    se.registerHandler('orderUpdated', UpdateOrder);
     se.replay(newObj, [event1, event2] );
     newObj.productId.should.equal(324);
   });
