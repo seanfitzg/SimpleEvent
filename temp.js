@@ -1,13 +1,16 @@
-var Simples = require("./lib/simples");
+var Simple = require("./lib/simple");
 var assert = require('assert');
 
-var events = [ { nameUpdated: 'Sean' }, 
-                { ageAdded: 17 } ];
+var se = new Simple();
+var newObj = {}
 
-var es = new Simples({
-        usePrefix: true
-    });
+var events = [ { productId: 123, quantity: 2, event: "submitAnOrder" } ]    
+var submitAnOrder = function (productId, quantity) {
 
-var newObj = {};
-es.replay(newObj, events);
-assert.equal(newObj.name, 'Sean');
+};
+
+
+se.registerHandler('submitAnOrder', submitAnOrder);
+se.replay(newObj, events);
+newObj.productId.should.equal(123);
+newObj.quantity.should.equal(2);

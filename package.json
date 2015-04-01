@@ -2,9 +2,12 @@
   "name": "simples",
   "version": "1.0.0",
   "description": "",
-  "main": "lib/simples",
+  "main": "lib/simple",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha test"
+    "test": "node ./node_modules/mocha/bin/mocha test",
+    "jshint": "./node_modules/.bin/jshint --verbose ./lib/simple.js",
+    "jslint": "./node_modules/.bin/jslint ./lib/*.js",
+    "ct": "nodemon -x npm test"
   },
   "author": "",
   "license": "ISC",
@@ -12,6 +15,8 @@
     "should": "^5.2.0"
   },
   "devDependencies": {
+    "jshint": "^2.6.3",
+    "jslint": "^0.9.0-pre006",
     "mocha": "^2.2.1"
   }
 }

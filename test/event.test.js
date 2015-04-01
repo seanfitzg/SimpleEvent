@@ -1,48 +1,45 @@
 'use strict';
 
-var Simples = require("../lib/simples");
+var Simple = require("../lib/simple");
 var should = require('should');
 var assert = require("assert");
 
-
-
-describe('Simples basic functions', function () {
-  var events;
-  var newObj;
-  var es = new Simples();
+describe('SimpleEvent basic functions', function () {
+  var events, newObj, se;
 
   beforeEach(function() {
+    se = new Simple();
     newObj = {}
     events = [ { name: 'Sean' } ];
   });
 
   it('builds a simple object', function () {
-    es.replay(newObj, events);
+    se.replay(newObj, events);
     newObj.name.should.equal('Sean');
   });
 
   it('does not throw an error if the events object is undefined', function () {
     events = undefined;
-    es.replay(newObj, events);
+    se.replay(newObj, events);
   });
 
   it('throws an error if root object is undefined', function () {
     var newObj;
     assert.throws(function() {
-      es.replay(newObj, events)
+      se.replay(newObj, events)
     }, Error);
   });
 
   it('builds an object from multiple events', function() {
     events.push({address: 'Limerick'});
-    es.replay(newObj, events);
+    se.replay(newObj, events);
     newObj.name.should.equal('Sean');
     newObj.address.should.equal('Limerick');
   });
 
   it('builds an object from an event with multiple properties', function () {
     events[0].age = 41;
-    es.replay(newObj, events);
+    se.replay(newObj, events);
     newObj.name.should.equal('Sean');
     newObj.age.should.equal(41);
   })
@@ -50,24 +47,45 @@ describe('Simples basic functions', function () {
 
 describe('Object built from descriptive event names', function() {
 
-  var events;
-  var newObj;
-  var es = new Simples({
-    usePrefix: true
-  });
+  var events, newObj, se;
 
   beforeEach(function() {
+    se = new Simple({
+      usePrefix: true
+    });
     newObj = {}
     events = [ { nameChanged: 'Sean' } ];
   });  
 
   it('the usePrefix config option is true', function() {
-   es.usePrefix.should.equal(true); 
+   se.usePrefix.should.equal(true); 
  });
 
   it('uses the event name prefix as the property', function() {
-    es.replay(newObj, events);
+    se.replay(newObj, events);
     newObj.name.should.equal('Sean');
   });
 });
 
+describe('Events can be linked to functions', function () {
+
+  var events, newObj, se;
+
+  beforeEach(function() {
+    se = new Simple();
+    newObj = {}
+  });  
+
+  it('a function will run when an event is raised', function () {
+
+    var events = [ { productId: 321, event: "orderSubmitted" } ] 
+    var submitAnOrder = function (event) {
+        this.productId = event.productId;
+    };
+
+    se.registerHandler('orderSubmitted', submitAnOrder);
+    se.replay(newObj, events);
+    newObj.productId.should.equal(321);
+  });
+
+});
