@@ -88,4 +88,22 @@ describe('Events can be linked to functions', function () {
     newObj.productId.should.equal(321);
   });
 
+  it('multiple events will be processed', function () {
+
+    var event1 = [ { productId: 321, event: "orderSubmitted" } ] 
+    var submitAnOrder = function (event) {
+        this.productId = event.productId;
+    };
+
+    var event2 = [ { productId: 324, event: "orderUpdated" } ] 
+    var updateOrder = function (event) {
+        this.productId = event.productId;
+    };
+
+    se.registerHandler('orderSubmitted', submitAnOrder);
+    se.registerHandler('orderUpdated', updateOrder);
+    se.replay(newObj, events);
+    newObj.productId.should.equal(324);
+  });
+
 });
