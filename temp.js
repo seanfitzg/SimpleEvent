@@ -1,22 +1,38 @@
 var Simple = require("./lib/simple");
 var assert = require('assert');
+var should = require('should');
 
 var se = new Simple();
 var newObj = {}
 
-    var event1 = { productId: 321, event: "orderSubmitted" }
-    var submitAnOrder = function (event) {
-        this.productId = event.productId;
-    };
 
-    var event2 = { productId: 324, event: "orderUpdated" }
-    var updateOrder = function (event) {
-        this.productId = event.productId;
-    };
+function SubmitAnOrder(event) {
+  this.productId = event.productId;
+  this.unitPrice = event.unitPrice;
+  this.quantity = event.quantity;
+};
 
-    se.registerHandler('orderSubmitted', submitAnOrder);
-    se.registerHandler('orderUpdated', updateOrder);
-    se.replay(newObj, [event1, event2] );
+function UpdateOrderQuantity(event) {;
+  this.quantity = event.quantity;
+  this.getTotalPrice = function(argument) {
+    return this.unitPrice * this.quantity;
+  };
+};
 
-newObj.productId.should.equal(123);
-newObj.quantity.should.equal(2);
+var event1 = {
+  productId: 324,
+  quantity: 1,
+  unitPrice: 79,
+  command: SubmitAnOrder
+}
+
+var event2 = {
+  quantity: 2,
+  command: SubmitAnOrder
+}
+
+se.registerHandler(SubmitAnOrder);
+se.registerHandler(UpdateOrderQuantity);
+se.replay(newObj, [event1, event2]);
+newObj.productId.should.equal(324);
+newObj.totalPrice().should.equal(158);

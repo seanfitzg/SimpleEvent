@@ -7,10 +7,12 @@ var assert = require("assert");
 describe('SimpleEvent basic functions', function () {
   var events, newObj, se;
 
-  beforeEach(function() {
+  beforeEach(function () {
     se = new Simple();
     newObj = {}
-    events = [ { name: 'Sean' } ];
+    events = [{
+      name: 'Sean'
+    }];
   });
 
   it('builds a simple object', function () {
@@ -25,13 +27,15 @@ describe('SimpleEvent basic functions', function () {
 
   it('throws an error if root object is undefined', function () {
     var newObj;
-    assert.throws(function() {
+    assert.throws(function () {
       se.replay(newObj, events)
     }, Error);
   });
 
-  it('builds an object from multiple events', function() {
-    events.push({address: 'Limerick'});
+  it('builds an object from multiple events', function () {
+    events.push({
+      address: 'Limerick'
+    });
     se.replay(newObj, events);
     newObj.name.should.equal('Sean');
     newObj.address.should.equal('Limerick');
@@ -45,23 +49,25 @@ describe('SimpleEvent basic functions', function () {
   })
 })
 
-describe('Object built from descriptive event names', function() {
+describe('Object built from descriptive event names', function () {
 
   var events, newObj, se;
 
-  beforeEach(function() {
+  beforeEach(function () {
     se = new Simple({
       usePrefix: true
     });
     newObj = {}
-    events = [ { nameChanged: 'Sean' } ];
-  });  
+    events = [{
+      nameChanged: 'Sean'
+    }];
+  });
 
-  it('the usePrefix config option is true', function() {
-   se.usePrefix.should.equal(true); 
- });
+  it('the usePrefix config option is true', function () {
+    se.usePrefix.should.equal(true);
+  });
 
-  it('uses the event name prefix as the property', function() {
+  it('uses the event name prefix as the property', function () {
     se.replay(newObj, events);
     newObj.name.should.equal('Sean');
   });
@@ -71,39 +77,73 @@ describe('Events can be linked to functions', function () {
 
   var events, newObj, se;
 
-  beforeEach(function() {
+  function SubmitAnOrder(event) {
+    this.productId = event.productId;
+    this.unitPrice = event.unitPrice;
+    this.quantity = event.quantity;
+  };
+
+  function UpdateOrderQuantity(event) {;
+    this.quantity = event.quantity;
+    this.getTotalPrice = function (argument) {
+      return this.unitPrice * this.quantity;
+    };
+  };
+
+  beforeEach(function () {
     se = new Simple();
     newObj = {}
-  });  
+  });
+
+  it('registers a command as a function statement', function () {
+
+  });
+
+  it('registers a command as a named function expression', function () {
+
+  });
+
+  it('registers a command using the name parameter', function () {
+
+  });
+
+  it('throws an error when a function expression without a name, ignores the name parameter', function () {
+
+  });
 
   it('a function will run when an event is raised', function () {
 
-    var events = [ { productId: 321, event: "orderSubmitted" } ] 
-    var SubmitAnOrder = function (event) {
-        this.productId = event.productId;
-    };
+    var events = [{
+      productId: 324,
+      quantity: 1,
+      unitPrice: 79,
+      command: SubmitAnOrder
+    }]
 
-    se.registerHandler('orderSubmitted', SubmitAnOrder);
+    se.registerHandler(SubmitAnOrder);
     se.replay(newObj, events);
-    newObj.productId.should.equal(321);
+    newObj.productId.should.equal(324);
   });
 
   it('multiple events will be processed', function () {
 
-    var event1 = { productId: 321, event: "orderSubmitted" }
-    var SubmitAnOrder = function (event) {
-        this.productId = event.productId;
-    };
+    var event1 = {
+      productId: 324,
+      quantity: 1,
+      unitPrice: 79,
+      command: SubmitAnOrder
+    }
 
-    var event2 = { productId: 324, event: "orderUpdated" } 
-    var UpdateOrder = function (event) {
-        this.productId = event.productId;
-    };
+    var event2 = {
+      quantity: 2,
+      command: UpdateOrderQuantity
+    }
 
-    se.registerHandler('orderSubmitted', SubmitAnOrder);
-    se.registerHandler('orderUpdated', UpdateOrder);
-    se.replay(newObj, [event1, event2] );
+    se.registerHandler(SubmitAnOrder);
+    se.registerHandler(UpdateOrderQuantity);
+    se.replay(newObj, [event1, event2]);
     newObj.productId.should.equal(324);
+    newObj.getTotalPrice().should.equal(158);
   });
 
 });
