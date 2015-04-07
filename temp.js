@@ -3,28 +3,37 @@ var assert = require('assert');
 var should = require('should');
 var Commander = require('./lib/commander');
 
-var se = new Simple();
-var newObj = {}
+var se1 = new Simple();
+se1.registerHandler(orderSubmitted, 'orderSubmitted');
 
-
-function SubmitAnOrder(event) {
-  this.productId = event.productId;
-  this.unitPrice = event.unitPrice;
-  this.quantity = event.quantity;
+function orderSubmitted(event) {
+  var order = {}
+  order.productId = event.productId;
+  order.unitPrice = event.unitPrice;
+  order.quantity = event.quantity;
+  return order;
 };
 
-var orderSubmitted = [{
+function quantityUpdated(event, order) {;
+  order.quantity = event.quantity;
+  return order;
+};
+
+var event1 = {
   productId: 324,
   quantity: 1,
   unitPrice: 79,
-  command: SubmitAnOrder
-}];
+  type: 'orderSubmitted'
+}
 
-var eventStore = []
-commander = new Commander(eventStore);
+var event2 = {
+  quantity: 2,
+  type: 'quantityUpdated'
+}
 
-commander.execute(SubmitAnOrder, orderSubmitted);
-
-eventStore[0].productId.should.equal('123');
-eventStore[0].quantity.should.equal(1);
-msg.should.equal('message was saved');
+se = new Simple();
+se.registerHandler(orderSubmitted, 'orderSubmitted');
+se.registerHandler(quantityUpdated, 'quantityUpdated');
+var obj = se.replay([event1, event2]);
+obj.productId.should.equal(324);
+obj.quantity.should.equal(2);

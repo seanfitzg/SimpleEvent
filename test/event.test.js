@@ -4,80 +4,11 @@ var Simple = require('../lib/simple');
 var should = require('should');
 var assert = require("assert");
 
-describe('SimpleEvent basic functions', function () {
-  var events, newObj, se;
+describe('EventStore basic functions', function () {
 
-  beforeEach(function () {
-    se = new Simple();
-    newObj = {}
-    events = [{
-      name: 'Sean'
-    }];
-  });
+  var se;
 
-  it('builds a simple object', function () {
-    se.replay(newObj, events);
-    newObj.name.should.equal('Sean');
-  });
-
-  it('does not throw an error if the events object is undefined', function () {
-    events = undefined;
-    se.replay(newObj, events);
-  });
-
-  it('throws an error if root object is undefined', function () {
-    var newObj;
-    assert.throws(function () {
-      se.replay(newObj, events)
-    }, Error);
-  });
-
-  it('builds an object from multiple events', function () {
-    events.push({
-      address: 'Limerick'
-    });
-    se.replay(newObj, events);
-    newObj.name.should.equal('Sean');
-    newObj.address.should.equal('Limerick');
-  });
-
-  it('builds an object from an event with multiple properties', function () {
-    events[0].age = 41;
-    se.replay(newObj, events);
-    newObj.name.should.equal('Sean');
-    newObj.age.should.equal(41);
-  })
-})
-
-describe('Object built from descriptive event names', function () {
-
-  var events, newObj, se;
-
-  beforeEach(function () {
-    se = new Simple({
-      usePrefix: true
-    });
-    newObj = {}
-    events = [{
-      nameChanged: 'Sean'
-    }];
-  });
-
-  it('the usePrefix config option is true', function () {
-    se.usePrefix.should.equal(true);
-  });
-
-  it('uses the event name prefix as the property', function () {
-    se.replay(newObj, events);
-    newObj.name.should.equal('Sean');
-  });
-});
-
-describe('Events can be linked to functions', function () {
-
-  var events, newObj, se;
-
-  function orderSubmittedHandler(event) {
+  function orderSubmitted(event) {
     var order = {}
     order.productId = event.productId;
     order.unitPrice = event.unitPrice;
@@ -85,35 +16,33 @@ describe('Events can be linked to functions', function () {
     return order;
   };
 
-  function UpdateOrderQuantity(order, event) {;
+  function quantityUpdated(event, order) {;
     order.quantity = event.quantity;
-    order.getTotalPrice = function (argument) {
-      return this.unitPrice * this.quantity;
-    };
+    return order;
   };
 
   beforeEach(function () {
     se = new Simple();
-    newObj = {}
   });
 
-  it('registers a command as a function statement', function () {
+  it('an error is thrown if an event if retrieved without an event type', function () {
+    var events = [{
+      productId: 324,
+      quantity: 1,
+      unitPrice: 79
+    }]
 
+    assert.throws(function () {
+      se.replay(events)
+    }, Error);
   });
 
-  it('registers a command as a named function expression', function () {
-
+  it('does not throw an error if the events object is undefined', function () {
+    var events = undefined;
+    se.replay(events);
   });
 
-  it('registers a command using the name parameter', function () {
-
-  });
-
-  it('throws an error when a function expression without a name, ignores the name parameter', function () {
-
-  });
-
-  it('a function will run when an event is raised', function () {
+  it('an event can be stored and an object can be retrieved', function () {
 
     var events = [{
       type: 'orderSubmitted',
@@ -122,30 +51,52 @@ describe('Events can be linked to functions', function () {
       unitPrice: 79
     }]
 
-    se.registerHandler('orderSubmitted', orderSubmittedHandler);
-    se.replay(newObj, events);
+    se.registerHandler(orderSubmitted, 'orderSubmitted');
+    var newObj = se.replay(events);
     newObj.productId.should.equal(324);
   });
 
-  // it('multiple events will be processed', function () {
+  it('multiple events can be stored and retrieved', function () {
 
-  //   var event1 = {
-  //     productId: 324,
-  //     quantity: 1,
-  //     unitPrice: 79,
-  //     command: SubmitAnOrder
-  //   }
+    var event1 = {
+      productId: 324,
+      quantity: 1,
+      unitPrice: 79,
+      type: 'orderWasSubmitted'
+    }
 
-  //   var event2 = {
-  //     quantity: 2,
-  //     command: UpdateOrderQuantity
-  //   }
+    var event2 = {
+      quantity: 2,
+      type: 'quantityUpdated'
+    }
 
-  //   se.registerHandler(SubmitAnOrder);
-  //   se.registerHandler(UpdateOrderQuantity);
-  //   se.replay(newObj, [event1, event2]);
-  //   newObj.productId.should.equal(324);
-  //   newObj.getTotalPrice().should.equal(158);
-  // });
+    se.registerHandler(orderSubmitted, 'orderWasSubmitted');
+    se.registerHandler(quantityUpdated, 'quantityUpdated');
+    var obj = se.replay([event1, event2]);
+    obj.productId.should.equal(324);
+    obj.quantity.should.equal(2);
+  });
+
+  it('an eventHandler can be registered without a name', function () {
+    
+    var event1 = {
+      productId: 324,
+      quantity: 1,
+      unitPrice: 79,
+      type: 'orderSubmitted'
+    }
+
+    var event2 = {
+      quantity: 2,
+      type: 'quantityUpdated'
+    }
+
+    se.registerHandler(orderSubmitted);
+    se.registerHandler(quantityUpdated);
+    var obj = se.replay([event1, event2]);
+    obj.productId.should.equal(324);
+    obj.quantity.should.equal(2);
+
+  });
 
 });
