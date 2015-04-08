@@ -34,7 +34,7 @@ describe('EventStore basic functions', function () {
 
     assert.throws(function () {
       se.replay(events)
-    }, Error);
+    }, /Event did not have an event type/);
   });
 
   it('does not throw an error if the events object is undefined', function () {
@@ -78,7 +78,7 @@ describe('EventStore basic functions', function () {
   });
 
   it('an eventHandler can be registered without a name', function () {
-    
+
     var event1 = {
       productId: 324,
       quantity: 1,
@@ -97,6 +97,28 @@ describe('EventStore basic functions', function () {
     obj.productId.should.equal(324);
     obj.quantity.should.equal(2);
 
+  });
+
+  it('an eventHandler function expression must have a name', function () {
+
+    var orderCreated = function (event) {
+      var order = {}
+      order.productId = event.productId;
+      order.unitPrice = event.unitPrice;
+      order.quantity = event.quantity;
+      return order;
+    };
+
+    var event1 = {
+      productId: 324,
+      quantity: 1,
+      unitPrice: 79,
+      type: 'orderCreated'
+    }
+
+    assert.throws(function () {
+      se.registerHandler(orderCreated);
+    }, /Event function expressions must have a name./); //
   });
 
 });
