@@ -3,6 +3,7 @@ logs
 *.log
 
 .c9
+.idea
 
 # Runtime data
 pids
